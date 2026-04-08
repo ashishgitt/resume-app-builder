@@ -62,19 +62,13 @@ jobs:
             return Scaffold(
               appBar: AppBar(
                 title: const Text('Workspace'),
-                actions: [
-                  IconButton(icon: const Icon(Icons.settings_outlined), onPressed: () {})
-                ],
               ),
               body: SingleChildScrollView(
                 padding: const EdgeInsets.all(20.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Good Morning,\nLet\'s land that role.',
-                      style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, height: 1.2),
-                    ),
+                    const Text('Good Morning,\nLet\'s land that role.', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, height: 1.2)),
                     const SizedBox(height: 30),
                     _buildActionCard(
                       context,
@@ -83,13 +77,20 @@ jobs:
                       icon: Icons.auto_awesome,
                       color: Colors.black,
                       textColor: Colors.white,
+                      onTap: () {
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => const OptimizeScreen()));
+                      },
                     ),
                     const SizedBox(height: 16),
                     Row(
                       children: [
-                        Expanded(child: _buildActionCard(context, title: 'Master Profile', subtitle: 'Update your base data.', icon: Icons.person_outline, color: Colors.white, textColor: Colors.black, isSmall: true)),
+                        Expanded(child: _buildActionCard(context, title: 'Master Profile', subtitle: 'Update your data.', icon: Icons.person_outline, color: Colors.white, textColor: Colors.black, isSmall: true, onTap: () {
+                          Navigator.push(context, MaterialPageRoute(builder: (context) => const ProfileScreen()));
+                        })),
                         const SizedBox(width: 16),
-                        Expanded(child: _buildActionCard(context, title: 'Cover Letters', subtitle: 'Generate new.', icon: Icons.document_scanner_outlined, color: Colors.white, textColor: Colors.black, isSmall: true)),
+                        Expanded(child: _buildActionCard(context, title: 'Cover Letters', subtitle: 'Coming Soon.', icon: Icons.document_scanner_outlined, color: Colors.white, textColor: Colors.black, isSmall: true, onTap: () {
+                           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Cover Letter feature coming soon!")));
+                        })),
                       ],
                     ),
                   ],
@@ -98,22 +99,86 @@ jobs:
             );
           }
 
-          Widget _buildActionCard(BuildContext context, {required String title, required String subtitle, required IconData icon, required Color color, required Color textColor, bool isSmall = false}) {
-            return Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: color,
-                borderRadius: BorderRadius.circular(16),
-                border: color == Colors.white ? Border.all(color: Colors.grey.shade200) : null,
+          Widget _buildActionCard(BuildContext context, {required String title, required String subtitle, required IconData icon, required Color color, required Color textColor, required VoidCallback onTap, bool isSmall = false}) {
+            return GestureDetector(
+              onTap: onTap,
+              child: Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(16), border: color == Colors.white ? Border.all(color: Colors.grey.shade200) : null),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(icon, color: textColor, size: 28),
+                    const SizedBox(height: 16),
+                    Text(title, style: TextStyle(color: textColor, fontSize: isSmall ? 16 : 20, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 8),
+                    Text(subtitle, style: TextStyle(color: textColor.withOpacity(0.8), fontSize: 13)),
+                  ],
+                ),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+            );
+          }
+        }
+
+        // --- NEW SCREENS ADDED BELOW ---
+
+        class OptimizeScreen extends StatelessWidget {
+          const OptimizeScreen({Key? key}) : super(key: key);
+          @override
+          Widget build(BuildContext context) {
+            return Scaffold(
+              appBar: AppBar(title: const Text('Analyze Job')),
+              body: Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const Text('Paste Job Description', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 10),
+                    Expanded(
+                      child: TextField(
+                        maxLines: 10,
+                        decoration: InputDecoration(
+                          hintText: 'Paste the responsibilities and requirements here...',
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(backgroundColor: Colors.black, padding: const EdgeInsets.all(16)),
+                      onPressed: () {
+                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("AI Connection Required to Analyze!")));
+                      },
+                      child: const Text('Run AI Analysis', style: TextStyle(color: Colors.white, fontSize: 16)),
+                    )
+                  ],
+                ),
+              ),
+            );
+          }
+        }
+
+        class ProfileScreen extends StatelessWidget {
+          const ProfileScreen({Key? key}) : super(key: key);
+          @override
+          Widget build(BuildContext context) {
+            return Scaffold(
+              appBar: AppBar(title: const Text('Master Profile')),
+              body: ListView(
+                padding: const EdgeInsets.all(20.0),
                 children: [
-                  Icon(icon, color: textColor, size: 28),
-                  const SizedBox(height: 16),
-                  Text(title, style: TextStyle(color: textColor, fontSize: isSmall ? 16 : 20, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 8),
-                  Text(subtitle, style: TextStyle(color: textColor.withOpacity(0.8), fontSize: 13)),
+                  const Text('Personal Info', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 10),
+                  const TextField(decoration: InputDecoration(labelText: 'Full Name', border: OutlineInputBorder())),
+                  const SizedBox(height: 10),
+                  const TextField(decoration: InputDecoration(labelText: 'Job Title', border: OutlineInputBorder())),
+                  const SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: () { Navigator.pop(context); },
+                    style: ElevatedButton.styleFrom(backgroundColor: Colors.black),
+                    child: const Text('Save Profile', style: TextStyle(color: Colors.white)),
+                  )
                 ],
               ),
             );
@@ -129,5 +194,6 @@ jobs:
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
-        name: ResumeApp-Release-APK
+        name: ResumeApp-Interactive-APK
         path: resume_app/build/app/outputs/flutter-apk/app-release.apk
+        
