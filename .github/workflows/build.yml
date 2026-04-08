@@ -1,0 +1,133 @@
+name: Build Resume App APK
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Set up Java
+      uses: actions/setup-java@v3
+      with:
+        distribution: 'zulu'
+        java-version: '17'
+        
+    - name: Set up Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        channel: 'stable'
+        
+    - name: Create App Structure
+      run: flutter create resume_app
+      
+    - name: Inject Dashboard Code
+      run: |
+        cat << 'EOF' > resume_app/lib/main.dart
+        import 'package:flutter/material.dart';
+
+        void main() {
+          runApp(const ResumeAIApp());
+        }
+
+        class ResumeAIApp extends StatelessWidget {
+          const ResumeAIApp({Key? key}) : super(key: key);
+
+          @override
+          Widget build(BuildContext context) {
+            return MaterialApp(
+              title: 'ResumeAI Builder',
+              theme: ThemeData(
+                scaffoldBackgroundColor: const Color(0xFFF7F7F9),
+                primaryColor: const Color(0xFF000000),
+                appBarTheme: const AppBarTheme(
+                  backgroundColor: Colors.transparent,
+                  elevation: 0,
+                  iconTheme: IconThemeData(color: Colors.black),
+                  titleTextStyle: TextStyle(color: Colors.black, fontSize: 22, fontWeight: FontWeight.w700),
+                ),
+              ),
+              home: const DashboardScreen(),
+            );
+          }
+        }
+
+        class DashboardScreen extends StatelessWidget {
+          const DashboardScreen({Key? key}) : super(key: key);
+
+          @override
+          Widget build(BuildContext context) {
+            return Scaffold(
+              appBar: AppBar(
+                title: const Text('Workspace'),
+                actions: [
+                  IconButton(icon: const Icon(Icons.settings_outlined), onPressed: () {})
+                ],
+              ),
+              body: SingleChildScrollView(
+                padding: const EdgeInsets.all(20.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Good Morning,\nLet\'s land that role.',
+                      style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, height: 1.2),
+                    ),
+                    const SizedBox(height: 30),
+                    _buildActionCard(
+                      context,
+                      title: 'Optimize for a Job',
+                      subtitle: 'Paste a Job Description and let AI tailor your resume.',
+                      icon: Icons.auto_awesome,
+                      color: Colors.black,
+                      textColor: Colors.white,
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(child: _buildActionCard(context, title: 'Master Profile', subtitle: 'Update your base data.', icon: Icons.person_outline, color: Colors.white, textColor: Colors.black, isSmall: true)),
+                        const SizedBox(width: 16),
+                        Expanded(child: _buildActionCard(context, title: 'Cover Letters', subtitle: 'Generate new.', icon: Icons.document_scanner_outlined, color: Colors.white, textColor: Colors.black, isSmall: true)),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }
+
+          Widget _buildActionCard(BuildContext context, {required String title, required String subtitle, required IconData icon, required Color color, required Color textColor, bool isSmall = false}) {
+            return Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: color,
+                borderRadius: BorderRadius.circular(16),
+                border: color == Colors.white ? Border.all(color: Colors.grey.shade200) : null,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(icon, color: textColor, size: 28),
+                  const SizedBox(height: 16),
+                  Text(title, style: TextStyle(color: textColor, fontSize: isSmall ? 16 : 20, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 8),
+                  Text(subtitle, style: TextStyle(color: textColor.withOpacity(0.8), fontSize: 13)),
+                ],
+              ),
+            );
+          }
+        }
+        EOF
+        
+    - name: Build APK
+      run: |
+        cd resume_app
+        flutter build apk --release
+        
+    - name: Upload APK
+      uses: actions/upload-artifact@v3
+      with:
+        name: ResumeApp-Release-APK
+        path: resume_app/build/app/outputs/flutter-apk/app-release.apk
